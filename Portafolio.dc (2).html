@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: oklch(0.16 0.02 250); font-family: 'Inter', sans-serif; }
+  ::selection { background: oklch(0.85 0.17 195); color: oklch(0.16 0.02 250); }
+  a { color: oklch(0.85 0.17 195); text-decoration: none; }
+  a:hover { color: oklch(0.85 0.19 145); }
+  html { scroll-behavior: smooth; }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes blink { 0%, 45% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  .cursor-blink { animation: blink 1s step-end infinite; }
+  @keyframes floatOrb1 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(60px, 40px) scale(1.15); } }
+  @keyframes floatOrb2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-50px, -60px) scale(1.1); } }
+  @keyframes orbPulse { 0%, 100% { opacity: 0.35; transform: translate(0, 0) scale(0.85); } 50% { opacity: 1; transform: translate(30px, -20px) scale(1.25); } }
+  @keyframes bannerShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  @keyframes bannerPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @keyframes arrowNudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+  .bg-orb-1 { position: fixed; top: -10%; left: -8%; width: 620px; height: 620px; border-radius: 50%; background: radial-gradient(circle, var(--orb-1), transparent 70%); filter: blur(50px); z-index: 0; pointer-events: none; animation: orbPulse 6s ease-in-out infinite; }
+  .bg-orb-2 { position: fixed; bottom: -12%; right: -6%; width: 540px; height: 540px; border-radius: 50%; background: radial-gradient(circle, var(--orb-2), transparent 70%); filter: blur(50px); z-index: 0; pointer-events: none; animation: orbPulse 7s ease-in-out infinite 1s; }
+  .site-content { position: relative; z-index: 1; }
+  .site-content div::-webkit-scrollbar { display: none; }
+</style>
+</helmet>
+
+<div style="{{ rootStyle }}">
+<canvas ref="{{ setCanvasRef }}" style="position: fixed; inset: 0; z-index: 0; pointer-events: none;"></canvas>
+  <div class="bg-orb-1"></div>
+  <div class="bg-orb-2"></div>
+  <div style="position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); z-index: 70; transition: width 0.1s linear; width: {{ progressPct }}%;"></div>
+
+  <div class="site-content">
+  <nav style="position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; row-gap: 10px; padding: 14px 28px; background: var(--nav-bg); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);">
+    <div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; color: var(--accent); white-space: nowrap;">JPF<span style="color: var(--text-muted);">.dev</span></div>
+    <div style="display: flex; align-items: center; flex-wrap: wrap; row-gap: 8px; gap: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;">
+      <a href="#sobre-mi" style="{{ navStyleSobreMi }}" style-hover="color: var(--accent);">{{ t.nav.sobreMi }}</a>
+      <a href="#proyectos" style="{{ navStyleProyectos }}" style-hover="color: var(--accent);">{{ t.nav.proyectos }}</a>
+      <a href="#habilidades" style="{{ navStyleHabilidades }}" style-hover="color: var(--accent);">{{ t.nav.habilidades }}</a>
+      <a href="#experiencia" style="{{ navStyleExperiencia }}" style-hover="color: var(--accent);">{{ t.nav.experiencia }}</a>
+      <a href="#educacion" style="{{ navStyleEducacion }}" style-hover="color: var(--accent);">{{ t.nav.educacion }}</a>
+      <a href="#contacto" style="{{ navStyleContacto }}" style-hover="color: var(--accent);">{{ t.nav.contacto }}</a>
+      <a href="Blog.dc.html" style="color: var(--text-nav); transition: color 0.2s ease;" style-hover="color: var(--accent);">blog</a>
+      <div style="display: flex; gap: 4px; margin-left: 4px; border-left: 1px solid var(--border); padding-left: 14px;">
+        <button onClick="{{ setLangEs }}" style="{{ esBtnStyle }}">ES</button>
+        <button onClick="{{ setLangEn }}" style="{{ enBtnStyle }}">EN</button>
+      </div>
+      <div style="display: flex; gap: 4px; border-left: 1px solid var(--border); padding-left: 10px;">
+        <button onClick="{{ setThemeDark }}" style="{{ darkBtnStyle }}">Dark</button>
+        <button onClick="{{ setThemeLight }}" style="{{ lightBtnStyle }}">Light</button>
+      </div>
+    </div>
+  </nav>
+
+  <a href="Blog.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 10px 24px; background: linear-gradient(90deg, var(--surface-2), var(--surface-3), var(--surface-2)); background-size: 200% 100%; animation: bannerShift 6s ease-in-out infinite; border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-nav); transition: background 0.2s ease;" style-hover="filter: brightness(1.1);">
+    <span style="font-weight: 700; color: var(--accent); animation: bannerPulse 2s ease-in-out infinite;">● {{ t.blogBanner.label }}</span>
+    <span>{{ t.blogBanner.title }}</span>
+    <span style="color: var(--accent); display: inline-block; animation: arrowNudge 1.4s ease-in-out infinite;">→</span>
+  </a>
+
+  <section id="inicio" style="max-width: 1080px; margin: 0 auto; padding: 120px 48px 100px; display: flex; flex-direction: column; gap: 24px;">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--accent-2); animation: fadeInUp 0.6s ease both;">$ whoami<span class="cursor-blink">_</span></div>
+    <h1 style="margin: 0; font-size: 56px; font-weight: 800; line-height: 1.1; animation: fadeInUp 0.6s ease 0.08s both;">Juan Pablo Franco</h1>
+    <p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--accent); max-width: 640px; animation: fadeInUp 0.6s ease 0.16s both;">{{ t.hero.role }}</p>
+    <p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text-muted); max-width: 640px; animation: fadeInUp 0.6s ease 0.20s both;">{{ t.hero.tags }}</p>
+    <p style="margin: 0; font-size: 17px; line-height: 1.7; color: var(--text-secondary); max-width: 640px; animation: fadeInUp 0.6s ease 0.24s both;">{{ t.hero.desc }}</p>
+    <div style="display: flex; gap: 16px; margin-top: 8px; animation: fadeInUp 0.6s ease 0.32s both;">
+      <a href="#proyectos" style="font-family: 'JetBrains Mono', monospace; font-size: 14px; padding: 12px 22px; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); transition: all 0.2s ease; display: inline-block;" style-hover="background: var(--accent); color: oklch(0.16 0.02 250); transform: translateY(-2px);">{{ t.hero.ctaProjects }}</a>
+      <a href="#contacto" style="font-family: 'JetBrains Mono', monospace; font-size: 14px; padding: 12px 22px; color: var(--text-secondary); transition: all 0.2s ease; display: inline-block;" style-hover="color: oklch(0.92 0.01 250); transform: translateY(-2px);">{{ t.hero.ctaContact }}</a>
+    </div>
+  </section>
+
+  <section id="sobre-mi" ref="{{ registerSobreMi }}" style="max-width: 1080px; margin: 0 auto; padding: 60px 48px; border-top: 1px solid var(--border);">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">{{ t.about.eyebrow }}</div>
+    <h2 style="margin: 0 0 20px; font-size: 30px; font-weight: 700;">{{ t.about.title }}</h2>
+    <p style="font-size: 16px; line-height: 1.8; color: var(--text-secondary); max-width: 720px; margin: 0 0 20px;">{{ t.about.p1 }}</p>
+    <p style="font-size: 16px; line-height: 1.8; color: var(--text-secondary); max-width: 720px; margin: 0 0 20px;">{{ t.about.p2 }}</p>
+    <p style="font-size: 16px; line-height: 1.8; color: var(--text-secondary); max-width: 720px; margin: 0 0 20px;">{{ t.about.p3 }}</p>
+    <p style="font-size: 16px; line-height: 1.8; color: var(--text-secondary); max-width: 720px; margin: 0 0 20px;">{{ t.about.p4 }}</p>
+    <p style="font-size: 16px; line-height: 1.8; color: var(--text-secondary); max-width: 720px;">{{ t.about.p5 }}</p>
+  </section>
+
+  <section id="proyectos" ref="{{ registerProyectos }}" style="max-width: 1080px; margin: 0 auto; padding: 60px 48px; border-top: 1px solid var(--border);">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">{{ t.projects.eyebrow }}</div>
+    <h2 style="margin: 0 0 32px; font-size: 30px; font-weight: 700;">{{ t.projects.title }}</h2>
+
+    <div style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;" style-hover="transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 32px oklch(0.10 0.02 250 / 0.5);">
+      <div style="padding: 28px 28px 0; cursor: pointer;" onClick="{{ toggleP1 }}">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 10px;">
+          <img src="assets/logo-workato.png" alt="Workato" style="height: 42px; width: auto;" />
+          <img src="assets/logo-genie.png" alt="Apollo" style="height: 32px; width: auto; border-radius: 6px;" />
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent-2); margin-bottom: 8px;">WORKATO · APOLLO · MCP · GOOGLE SHEETS</div>
+        <h3 style="margin: 0 0 6px; font-size: 22px; font-weight: 700;">{{ t.p1.title }}</h3>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--accent); margin-bottom: 14px;">{{ t.p1.subtitle }}</div>
+        <p style="font-size: 15px; line-height: 1.7; color: var(--text-muted); max-width: 700px; margin: 0 0 6px;">{{ t.p1.excerpt }}</p>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 700; color: var(--accent); margin-bottom: 20px;">{{ p1ToggleLabel }}</div>
+      </div>
+      <sc-if value="{{ p1Open }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 0 28px;">
+        <p style="font-size: 15px; line-height: 1.7; color: var(--text-secondary); max-width: 700px; margin: 0 0 16px;">{{ t.p1.desc1 }}</p>
+        <p style="font-size: 14px; line-height: 1.7; color: var(--text-muted); max-width: 700px; margin: 0 0 16px;">{{ t.p1.desc2 }}</p>
+        <div style="margin: 0 0 24px;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-bottom: 14px; letter-spacing: 0.08em; font-weight: 700;">{{ t.archLabel }}</div>
+          <div style="display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; gap: 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; padding-bottom: 6px; scrollbar-width: none; -ms-overflow-style: none;">
+            <div style="border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 20px; background: var(--surface-2); color: var(--text-nav); white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px oklch(0.10 0.02 250 / 0.4); transition: all 0.25s ease;" style-hover="transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);">{{ t.p1.arch.a.title }}<br><span style="color: var(--text-muted); font-size: 12px;">{{ t.p1.arch.a.sub }}</span></div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--accent); border-radius: 10px; padding: 16px 20px; background: oklch(0.85 0.17 195 / 0.08); color: var(--accent); font-weight: 700; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 16px oklch(0.85 0.17 195 / 0.2); transition: all 0.25s ease;" style-hover="transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 24px oklch(0.85 0.17 195 / 0.35);">{{ t.p1.arch.b.title }}</div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 20px; background: var(--surface-2); color: var(--text-nav); white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px oklch(0.10 0.02 250 / 0.4); transition: all 0.25s ease;" style-hover="transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);">{{ t.p1.arch.c.title }}<br><span style="color: var(--text-muted); font-size: 12px;">{{ t.p1.arch.c.sub }}</span></div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 20px; background: var(--surface-2); color: var(--text-nav); white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px oklch(0.10 0.02 250 / 0.4); transition: all 0.25s ease;" style-hover="transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);">{{ t.p1.arch.d.title }}<br><span style="color: var(--text-muted); font-size: 12px;">{{ t.p1.arch.d.sub }}</span></div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--accent-2); border-radius: 10px; padding: 16px 20px; background: oklch(0.85 0.19 145 / 0.08); color: var(--accent-2); font-weight: 700; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 16px oklch(0.85 0.19 145 / 0.2); transition: all 0.25s ease;" style-hover="transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 24px oklch(0.85 0.19 145 / 0.35);">{{ t.p1.arch.e.title }}</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">Workato</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">Workato AI Agents</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">Apollo</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">MCP</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">Google Sheets</span>
+        </div>
+      </div>
+      <div style="position: relative; width: 100%; aspect-ratio: 16/9; background: var(--surface-3);">
+        <iframe src="https://www.youtube-nocookie.com/embed/ShPoXyQ4ttE" title="SDR Agent" referrerpolicy="strict-origin-when-cross-origin" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+      </div>
+      </sc-if>
+    </div>
+
+    <div style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); margin-top: 28px; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;" style-hover="transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 32px oklch(0.10 0.02 250 / 0.5);">
+      <div style="padding: 28px 28px 0; cursor: pointer;" onClick="{{ toggleP2 }}">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 10px;">
+          <img src="assets/logo-workato.png" alt="Workato" style="height: 42px; width: auto;" />
+          <img src="assets/logo-aws.png" alt="AWS" style="height: 30px; width: auto;" />
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent-2); margin-bottom: 8px;">WORKATO · AWS EC2</div>
+        <h3 style="margin: 0 0 10px; font-size: 22px; font-weight: 700;">{{ t.p2.title }}</h3>
+        <p style="font-size: 15px; line-height: 1.7; color: var(--text-muted); max-width: 700px; margin: 0 0 6px;">{{ t.p2.excerpt }}</p>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 700; color: var(--accent); margin-bottom: 20px;">{{ p2ToggleLabel }}</div>
+      </div>
+      <sc-if value="{{ p2Open }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 0 28px;">
+        <p style="font-size: 15px; line-height: 1.7; color: var(--text-secondary); max-width: 700px; margin: 0 0 16px;">{{ t.p2.desc1 }}</p>
+        <div style="margin: 0 0 24px;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-bottom: 14px; letter-spacing: 0.08em; font-weight: 700;">{{ t.archLabel }}</div>
+          <div style="display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; gap: 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; padding-bottom: 6px; scrollbar-width: none; -ms-overflow-style: none;">
+            <div style="border: 1.5px solid var(--accent); border-radius: 10px; padding: 16px 20px; background: oklch(0.85 0.17 195 / 0.08); color: var(--accent); font-weight: 700; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 16px oklch(0.85 0.17 195 / 0.2); transition: all 0.25s ease;" style-hover="transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 24px oklch(0.85 0.17 195 / 0.35);">{{ t.p2.arch.a.title }}<br><span style="color: var(--text-muted); font-size: 12px;">{{ t.p2.arch.a.sub }}</span></div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 20px; background: var(--surface-2); color: var(--text-nav); white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px oklch(0.10 0.02 250 / 0.4); transition: all 0.25s ease;" style-hover="transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);">{{ t.p2.arch.b.title }}<br><span style="color: var(--text-muted); font-size: 12px;">{{ t.p2.arch.b.sub }}</span></div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 20px; background: var(--surface-2); color: var(--text-nav); white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px oklch(0.10 0.02 250 / 0.4); transition: all 0.25s ease;" style-hover="transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);">{{ t.p2.arch.c.title }}</div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--accent-2); border-radius: 10px; padding: 16px 20px; background: oklch(0.85 0.19 145 / 0.08); color: var(--accent-2); font-weight: 700; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 16px oklch(0.85 0.19 145 / 0.2); transition: all 0.25s ease;" style-hover="transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 24px oklch(0.85 0.19 145 / 0.35);">{{ t.p2.arch.d.title }}<br><span style="color: var(--text-muted); font-size: 12px;">{{ t.p2.arch.d.sub }}</span></div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">Workato</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">AWS EC2</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">{{ t.p2.tagAgents }}</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">{{ t.p2.tagSecurity }}</span>
+        </div>
+      </div>
+      <div style="position: relative; width: 100%; aspect-ratio: 16/9; background: var(--surface-3);">
+        <iframe src="https://www.youtube-nocookie.com/embed/kBsZ7qM9qec" title="EC2 security agent" referrerpolicy="strict-origin-when-cross-origin" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+      </div>
+      </sc-if>
+    </div>
+
+    <div style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); margin-top: 28px; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;" style-hover="transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 32px oklch(0.10 0.02 250 / 0.5);">
+      <div style="padding: 28px 28px 0; cursor: pointer;" onClick="{{ toggleP3 }}">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 10px;">
+          <img src="assets/logo-workato.png" alt="Workato" style="height: 42px; width: auto;" />
+          <img src="assets/logo-aws.png" alt="AWS" style="height: 30px; width: auto;" />
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent-2); margin-bottom: 8px;">WORKATO · AWS S3 · MCP · CLAUDE</div>
+        <h3 style="margin: 0 0 10px; font-size: 22px; font-weight: 700;">{{ t.p3.title }}</h3>
+        <p style="font-size: 15px; line-height: 1.7; color: var(--text-muted); max-width: 700px; margin: 0 0 6px;">{{ t.p3.excerpt }}</p>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 700; color: var(--accent); margin-bottom: 20px;">{{ p3ToggleLabel }}</div>
+      </div>
+      <sc-if value="{{ p3Open }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 0 28px;">
+        <p style="font-size: 15px; line-height: 1.7; color: var(--text-secondary); max-width: 700px; margin: 0 0 16px;">{{ t.p3.desc1 }}</p>
+        <div style="margin: 0 0 24px;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-bottom: 14px; letter-spacing: 0.08em; font-weight: 700;">{{ t.archLabel }}</div>
+          <div style="display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; gap: 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; padding-bottom: 6px; scrollbar-width: none; -ms-overflow-style: none;">
+            <div style="border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 20px; background: var(--surface-2); color: var(--text-nav); white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px oklch(0.10 0.02 250 / 0.4); transition: all 0.25s ease;" style-hover="transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);">Claude<br><span style="color: var(--text-muted); font-size: 12px;">{{ t.p3.arch.a.sub }}</span></div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--accent); border-radius: 10px; padding: 16px 20px; background: oklch(0.85 0.17 195 / 0.08); color: var(--accent); font-weight: 700; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 16px oklch(0.85 0.17 195 / 0.2); transition: all 0.25s ease;" style-hover="transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 24px oklch(0.85 0.17 195 / 0.35);">{{ t.p3.arch.b.title }}</div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 20px; background: var(--surface-2); color: var(--text-nav); white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px oklch(0.10 0.02 250 / 0.4); transition: all 0.25s ease;" style-hover="transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);">AWS S3<br><span style="color: var(--text-muted); font-size: 12px;">{{ t.p3.arch.c.sub }}</span></div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--accent-2); border-radius: 10px; padding: 16px 20px; background: oklch(0.85 0.19 145 / 0.08); color: var(--accent-2); font-weight: 700; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 16px oklch(0.85 0.19 145 / 0.2); transition: all 0.25s ease;" style-hover="transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 24px oklch(0.85 0.19 145 / 0.35);">{{ t.p3.arch.d.title }}</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">Workato</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">AWS S3</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">MCP</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">Claude</span>
+        </div>
+      </div>
+      <div style="position: relative; width: 100%; aspect-ratio: 16/9; background: var(--surface-3);">
+        <iframe src="https://www.youtube-nocookie.com/embed/vmiuK8LOZts" title="S3 remediation agent" referrerpolicy="strict-origin-when-cross-origin" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+      </div>
+      </sc-if>
+    </div>
+
+    <div style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); margin-top: 28px; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;" style-hover="transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 32px oklch(0.10 0.02 250 / 0.5);">
+      <div style="padding: 28px 28px 0; cursor: pointer;" onClick="{{ toggleP4 }}">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 10px;">
+          <img src="assets/logo-workato.png" alt="Workato Genie" style="height: 42px; width: auto;" />
+          <img src="assets/logo-powerbi.png" alt="Power BI" style="height: 32px; width: auto;" />
+          <img src="assets/logo-msteams.png" alt="MS Teams" style="height: 32px; width: auto;" />
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent-2); margin-bottom: 8px;">WORKATO GENIE · POWER BI · MS TEAMS · DAX</div>
+        <h3 style="margin: 0 0 10px; font-size: 22px; font-weight: 700;">{{ t.p4.title }}</h3>
+        <p style="font-size: 15px; line-height: 1.7; color: var(--text-muted); max-width: 700px; margin: 0 0 6px;">{{ t.p4.excerpt }}</p>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 700; color: var(--accent); margin-bottom: 20px;">{{ p4ToggleLabel }}</div>
+      </div>
+      <sc-if value="{{ p4Open }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 0 28px;">
+        <p style="font-size: 15px; line-height: 1.7; color: var(--text-secondary); max-width: 700px; margin: 0 0 16px;">{{ t.p4.desc1 }}</p>
+        <p style="font-size: 14px; line-height: 1.7; color: var(--text-muted); max-width: 700px; margin: 0 0 16px;">{{ t.p4.desc2 }}</p>
+        <div style="margin: 0 0 24px;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-bottom: 14px; letter-spacing: 0.08em; font-weight: 700;">{{ t.archLabel }}</div>
+          <div style="display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; gap: 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; padding-bottom: 6px; scrollbar-width: none; -ms-overflow-style: none;">
+            <div style="border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 20px; background: var(--surface-2); color: var(--text-nav); white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px oklch(0.10 0.02 250 / 0.4); transition: all 0.25s ease;" style-hover="transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);">MS Teams<br><span style="color: var(--text-muted); font-size: 12px;">{{ t.p4.arch.a.sub }}</span></div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--accent); border-radius: 10px; padding: 16px 20px; background: oklch(0.85 0.17 195 / 0.08); color: var(--accent); font-weight: 700; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 16px oklch(0.85 0.17 195 / 0.2); transition: all 0.25s ease;" style-hover="transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 24px oklch(0.85 0.17 195 / 0.35);">Workato Genie<br><span style="color: var(--text-muted); font-size: 12px;">{{ t.p4.arch.b.sub }}</span></div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 20px; background: var(--surface-2); color: var(--text-nav); white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px oklch(0.10 0.02 250 / 0.4); transition: all 0.25s ease;" style-hover="transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);">{{ t.p4.arch.c.title }}<br><span style="color: var(--text-muted); font-size: 12px;">Power BI REST API + DAX</span></div>
+            <div style="color: var(--accent); padding: 0 14px; font-size: 20px; flex-shrink: 0;">→</div>
+            <div style="border: 1.5px solid var(--accent-2); border-radius: 10px; padding: 16px 20px; background: oklch(0.85 0.19 145 / 0.08); color: var(--accent-2); font-weight: 700; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 16px oklch(0.85 0.19 145 / 0.2); transition: all 0.25s ease;" style-hover="transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 24px oklch(0.85 0.19 145 / 0.35);">{{ t.p4.arch.d.title }}</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">Workato Genie</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">Power BI</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">MS Teams</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">DAX</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-secondary); transition: all 0.2s ease;" style-hover="border-color: var(--accent); color: var(--accent);">REST API</span>
+        </div>
+      </div>
+      <div style="position: relative; width: 100%; aspect-ratio: 16/9; background: var(--surface-3);">
+        <iframe src="https://www.youtube-nocookie.com/embed/YZJGbn_b_G4" title="Power BI Genie" referrerpolicy="strict-origin-when-cross-origin" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+      </div>
+      </sc-if>
+    </div>
+  </section>
+
+  <section id="habilidades" ref="{{ registerHabilidades }}" style="max-width: 1080px; margin: 0 auto; padding: 60px 48px; border-top: 1px solid var(--border);">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">{{ t.skills.eyebrow }}</div>
+    <h2 style="margin: 0 0 32px; font-size: 30px; font-weight: 700;">{{ t.skills.title }}</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+      <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--surface); transition: transform 0.25s ease, border-color 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent);">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 10px;">{{ t.skills.c1.name }}</div>
+        <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">{{ t.skills.c1.desc }}</div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--surface); transition: transform 0.25s ease, border-color 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent);">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 10px;">{{ t.skills.c2.name }}</div>
+        <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">{{ t.skills.c2.desc }}</div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--surface); transition: transform 0.25s ease, border-color 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent);">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 10px;">{{ t.skills.c3.name }}</div>
+        <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">{{ t.skills.c3.desc }}</div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--surface); transition: transform 0.25s ease, border-color 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent);">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 10px;">{{ t.skills.c4.name }}</div>
+        <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">{{ t.skills.c4.desc }}</div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--surface); transition: transform 0.25s ease, border-color 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent);">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 10px;">{{ t.skills.c5.name }}</div>
+        <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">{{ t.skills.c5.desc }}</div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--surface); transition: transform 0.25s ease, border-color 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent);">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 10px;">{{ t.skills.c6.name }}</div>
+        <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">{{ t.skills.c6.desc }}</div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--surface); transition: transform 0.25s ease, border-color 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent);">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 10px;">{{ t.skills.c7.name }}</div>
+        <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">{{ t.skills.c7.desc }}</div>
+      </div>
+    </div>
+
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted); margin: 44px 0 18px;">{{ t.skills.techLabel }}</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">Workato</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">Power Automate</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">n8n</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">AWS</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">NetSuite</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">SAP</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">Salesforce</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">ServiceNow</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">MySQL</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">PostgreSQL</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">MCP</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">Power BI</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">Google Workspace</span></div>
+      <div style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; background: var(--surface); transition: all 0.25s ease;" style-hover="transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px oklch(0.85 0.17 195 / 0.15);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">Slack</span></div>
+    </div>
+  </section>
+
+  <section id="experiencia" ref="{{ registerExperiencia }}" style="max-width: 1080px; margin: 0 auto; padding: 60px 48px; border-top: 1px solid var(--border);">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">{{ t.experience.eyebrow }}</div>
+    <h2 style="margin: 0 0 32px; font-size: 30px; font-weight: 700;">{{ t.experience.title }}</h2>
+    <div style="display: flex; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--border);">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted); width: 140px; flex-shrink: 0;">{{ t.experience.job1.period }}</div>
+      <div>
+        <div style="font-size: 17px; font-weight: 700;">{{ t.experience.job1.title }}</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-top: 6px;">{{ t.experience.job1.company }}</div>
+        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">{{ t.experience.job1.location }}</div>
+        <ul style="font-size: 14px; color: var(--text-secondary); margin: 14px 0 0; padding-left: 18px; line-height: 1.8;">
+          <sc-for list="{{ t.experience.job1.bullets }}" as="b" hint-placeholder-count="6">
+            <li>{{ b }}</li>
+          </sc-for>
+        </ul>
+      </div>
+    </div>
+    <div style="display: flex; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--border);">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted); width: 140px; flex-shrink: 0;">{{ t.experience.job2.period }}</div>
+      <div>
+        <div style="font-size: 17px; font-weight: 700;">{{ t.experience.job2.title }}</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-top: 6px;">{{ t.experience.job2.company }}</div>
+        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">{{ t.experience.job2.location }}</div>
+        <ul style="font-size: 14px; color: var(--text-secondary); margin: 14px 0 0; padding-left: 18px; line-height: 1.8;">
+          <sc-for list="{{ t.experience.job2.bullets }}" as="b" hint-placeholder-count="6">
+            <li>{{ b }}</li>
+          </sc-for>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="educacion" ref="{{ registerEducacion }}" style="max-width: 1080px; margin: 0 auto; padding: 60px 48px; border-top: 1px solid var(--border);">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">{{ t.education.eyebrow }}</div>
+    <h2 style="margin: 0 0 32px; font-size: 30px; font-weight: 700;">{{ t.education.title }}</h2>
+    <div style="display: flex; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--border);">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted); width: 140px; flex-shrink: 0;">{{ t.education.period }}</div>
+      <div>
+        <div style="font-size: 17px; font-weight: 700;">Universidad Autónoma del Estado de Hidalgo</div>
+        <div style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">{{ t.education.degree }}</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contacto" ref="{{ registerContacto }}" style="max-width: 1080px; margin: 0 auto; padding: 60px 48px 100px; border-top: 1px solid var(--border);">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">{{ t.contact.eyebrow }}</div>
+    <h2 style="margin: 0 0 20px; font-size: 30px; font-weight: 700;">{{ t.contact.title }}</h2>
+    <p style="font-size: 16px; line-height: 1.7; color: var(--text-secondary); max-width: 600px; margin: 0 0 28px;">{{ t.contact.desc }}</p>
+    <div style="display: flex; gap: 24px; flex-wrap: wrap; font-family: 'JetBrains Mono', monospace; font-size: 15px;">
+      <a href="mailto:francohdz1108@gmail.com" style="border: 1px solid var(--accent); border-radius: 4px; padding: 12px 20px; color: var(--accent); transition: all 0.2s ease; display: inline-block;" style-hover="background: var(--accent); color: oklch(0.16 0.02 250); transform: translateY(-2px);">francohdz1108@gmail.com</a>
+      <a href="https://www.linkedin.com/in/juan-pablo-franco-b044782a2/" target="_blank" style="border: 1px solid var(--border); border-radius: 4px; padding: 12px 20px; color: var(--text-nav); transition: all 0.2s ease; display: inline-block;" style-hover="border-color: var(--accent); transform: translateY(-2px);">LinkedIn ↗</a>
+    </div>
+  </section>
+
+  <footer style="text-align: center; padding: 28px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: oklch(0.55 0.02 250); border-top: 1px solid var(--border);">© 2026 Juan Pablo Franco</footer>
+  </div>
+
+  <sc-if value="{{ showTop }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ scrollToTop }}" aria-label="Back to top" style="position: fixed; bottom: 28px; right: 28px; z-index: 60; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--accent); background: var(--surface); color: var(--accent); font-size: 18px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 20px oklch(0.10 0.02 250 / 0.5);" style-hover="background: var(--accent); color: oklch(0.16 0.02 250); transform: translateY(-3px);">↑</button>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const T = {
+  es: {
+    nav: { sobreMi: 'sobre-mi', proyectos: 'proyectos', habilidades: 'habilidades', experiencia: 'experiencia', educacion: 'educacion', contacto: 'contacto' },
+    hero: {
+      role: 'Solutions Engineer | Integration & Automation',
+      tags: 'APIs • Enterprise Messaging • iPaaS • AI Agents • Cloud',
+      desc: 'Diseño e implemento soluciones de integración, automatización, mensajería empresarial y agentes de IA que conectan aplicaciones, datos y personas. Participo en todo el ciclo de vida de la solución, desde la preventa técnica hasta la implementación.',
+      ctaProjects: 'ver proyectos →',
+      ctaContact: 'contactar',
+    },
+    about: {
+      eyebrow: '01 · Sobre mí', title: 'Sobre mí',
+      p1: 'Soy Ingeniero en Telecomunicaciones con más de tres años de experiencia en tecnología, telecomunicaciones e integración de soluciones. Me especializo en transformar retos técnicos complejos en procesos más simples, eficientes y escalables mediante automatización, APIs e inteligencia artificial.',
+      p2: 'Actualmente ayudo a las empresas a diseñar e implementar soluciones que conectan aplicaciones, datos y procesos de negocio. Participo en todo el ciclo de vida de cada proyecto: desde el levantamiento de requerimientos y el diseño técnico, hasta la creación de pruebas de concepto, implementación, capacitación y onboarding.',
+      p3: 'Trabajo con el partner líder de Workato en LATAM, desarrollando soluciones de integración empresarial, iPaaS, gestión de APIs, automatización y Agentic AI. Mi enfoque consiste en construir ecosistemas tecnológicos conectados, dinámicos y capaces de responder a necesidades reales del negocio.',
+      p4: 'Mi experiencia previa en CPaaS y soluciones omnicanal —como Contact Center, WhatsApp Business API, SMS y RCS— me permite comprender cómo las comunicaciones corporativas se integran con aplicaciones, plataformas y sistemas empresariales.',
+      p5: 'Busco conectar la visión de negocio con la ejecución tecnológica, diseñando soluciones claras y de alto impacto que generen eficiencia operativa y valor tangible.',
+    },
+    archLabel: '◆ ARQUITECTURA',
+    blogBanner: { label: 'NUEVO ARTÍCULO', title: 'Cloud Governance Genie: un agente de IA que audita, corrige y gestiona instancias EC2 en AWS' },
+    projects: { eyebrow: '02 · Proyectos', title: 'Proyectos' },
+    p1: {
+      title: 'SDR Agent: prospección y enriquecimiento con Workato + Apollo MCP',
+      subtitle: 'De una solicitud en lenguaje natural a una lista de prospectos enriquecida y organizada en Google Sheets.',
+      excerpt: 'Agente de IA que busca empresas, identifica decisores y enriquece contactos automáticamente para acelerar la prospección B2B.',
+      desc1: 'Agente de IA que busca empresas, identifica decisores, enriquece contactos y organiza los resultados automáticamente para acelerar la prospección B2B. El usuario describe en lenguaje natural criterios como industria, país, tamaño de empresa y cargos objetivo; el agente consulta Apollo mediante MCP, presenta empresas y perfiles encontrados, prioriza contactos como CIO, CTO, vicepresidentes y directores, enriquece la información profesional del contacto seleccionado y carga los resultados estructurados en Google Sheets.',
+      desc2: 'Resuelve el trabajo manual de buscar empresas, identificar decisores, revisar y enriquecer perfiles, y copiar información entre plataformas — que retrasa el inicio de campañas comerciales. El agente concentra el proceso en una sola conversación: interpreta la solicitud, usa herramientas externas, procesa resultados y ejecuta acciones, entregando al equipo comercial una lista centralizada y estructurada de empresas y contactos lista para revisión, segmentación o campañas outbound.',
+      arch: {
+        a: { title: 'Usuario', sub: 'solicitud en lenguaje natural' },
+        b: { title: 'Agente Workato' },
+        c: { title: 'Apollo (MCP)', sub: 'búsqueda + enriquecimiento' },
+        d: { title: 'Priorización', sub: 'CIO · CTO · VP · Dir.' },
+        e: { title: 'Google Sheets' },
+      },
+    },
+    p2: {
+      title: 'Agente de IA para auditoría y gestión de seguridad en EC2',
+      excerpt: 'Agente en Workato que audita, corrige y aprovisiona instancias EC2 en AWS según políticas de seguridad definidas.',
+      desc1: 'Agente construido en Workato que audita configuraciones de seguridad de instancias EC2 en AWS, corrige hallazgos automáticamente y crea nuevas instancias según políticas definidas — reduciendo intervención manual en tareas recurrentes de seguridad y aprovisionamiento.',
+      arch: {
+        a: { title: 'Agente Workato', sub: 'programado / bajo demanda' },
+        b: { title: 'AWS EC2', sub: 'auditoría de configuración' },
+        c: { title: 'Detección de hallazgos' },
+        d: { title: 'Remediación automática', sub: 'corrección + aprovisionamiento' },
+      },
+      tagAgents: 'Agentes de IA', tagSecurity: 'Seguridad',
+    },
+    p3: {
+      title: 'Agente de corrección automática de buckets S3 expuestos',
+      excerpt: 'Agente que detecta y corrige automáticamente buckets de S3 con acceso público expuesto, corriendo dentro y fuera de Workato vía MCP.',
+      desc1: 'Agente que se conecta a AWS S3, detecta buckets con acceso público expuesto y los corrige automáticamente. El video muestra dos formas de ejecutarlo: primero como flujo nativo dentro de Workato, y después el mismo agente integrado por MCP (Model Context Protocol) a Claude, operando fuera de Workato con el mismo resultado.',
+      arch: {
+        a: { sub: 'o trigger nativo de Workato' },
+        b: { title: 'Agente Workato (MCP)' },
+        c: { sub: 'detección de buckets públicos' },
+        d: { title: 'Corrección automática' },
+      },
+    },
+    p4: {
+      title: 'Consulta conversacional de datos de Power BI con Agentes de Workato',
+      excerpt: 'Consulta información de Power BI en lenguaje natural desde Microsoft Teams, usando Workato Genie como capa de integración.',
+      desc1: 'Solución que permite consultar información de Power BI desde una app personalizada de Microsoft Teams usando lenguaje natural. Teams actúa como interfaz de conversación; Workato Genie interpreta la intención y selecciona una skill, que ejecuta una receta de Workato con la lógica de integración y validaciones. Workato se conecta al modelo semántico vía la Power BI REST API y ejecuta consultas DAX para obtener métricas, comparaciones o desgloses, y Genie devuelve la respuesta en lenguaje natural dentro de Teams.',
+      desc2: 'Power BI sigue siendo la fuente de datos y visualización; Workato es la capa de integración y ejecución. El objetivo es reducir la navegación manual por dashboards para consultas recurrentes, con capacidades delimitadas por las skills configuradas en Workato.',
+      arch: {
+        a: { sub: 'consulta en lenguaje natural' },
+        b: { sub: 'intención → skill' },
+        c: { title: 'Receta Workato' },
+        d: { title: 'Respuesta en Teams' },
+      },
+    },
+    skills: {
+      eyebrow: '03 · Habilidades', title: 'Habilidades técnicas',
+      techLabel: 'Tecnologías & plataformas',
+      c1: { name: 'Integración & Automatización', desc: 'Workato · n8n · Make · Power Automate · iPaaS · Automatizaciones de procesos' },
+      c2: { name: 'IA & Agentes', desc: 'Agentes de IA · MCP · Integración con modelos' },
+      c3: { name: 'Cloud', desc: 'AWS · EC2 · Seguridad en la nube' },
+      c4: { name: 'Liderazgo técnico', desc: 'Arquitectura de soluciones · Mentoría' },
+      c5: { name: 'APIs', desc: 'REST · SOAP · Webhooks · Autenticación OAuth' },
+      c6: { name: 'Mensajería & Voz', desc: 'WhatsApp · Chatbots inteligentes · IVR · SIP' },
+      c7: { name: 'Contact Center as a Service', desc: 'BrightPattern · Genesys · Creación de centros de contacto · Aprovisionamiento de espacios de trabajo · Configuración de flujos conversacionales' },
+    },
+    experience: {
+      eyebrow: '04 · Experiencia', title: 'Experiencia laboral',
+      job1: {
+        period: 'nov. 2025 — actualidad', title: 'Presales & Solutions Engineer – Workato',
+        company: 'Chakray Consulting · Jornada completa', location: 'Área metropolitana de Ciudad de México · Híbrido',
+        bullets: [
+          'Diseño arquitecturas de integración y automatización empresarial utilizando Workato, APIs, iPaaS y soluciones de Agentic AI.',
+          'Lidero sesiones de discovery y análisis de requerimientos para transformar necesidades de negocio en soluciones técnicas viables, escalables y alineadas con los objetivos del cliente.',
+          'Desarrollo demostraciones, pruebas de concepto y casos de uso para validar la viabilidad, el alcance y el impacto de las soluciones propuestas.',
+          'Brindo acompañamiento técnico en procesos de preventa, RFPs, estimaciones, dimensionamiento y elaboración de propuestas técnico-comerciales.',
+          'Participo en la implementación, onboarding y capacitación de clientes, facilitando la adopción y sostenibilidad de las soluciones.',
+          'Integro aplicaciones, datos y procesos mediante APIs, conectores, automatizaciones y agentes de inteligencia artificial.',
+        ],
+      },
+      job2: {
+        period: 'ene. 2024 — nov. 2025', title: 'Solutions Engineer – Omnichannel & Contact Center Solutions',
+        company: 'C3NTRO Telecom · Jornada completa', location: 'Ciudad de México, México',
+        bullets: [
+          'Diseñé arquitecturas de soluciones basadas en CPaaS, mensajería empresarial —SMS, RCS y WhatsApp Business API—, telefonía y plataformas de Contact Center.',
+          'Analicé requerimientos técnicos y funcionales para construir propuestas alineadas con las necesidades operativas y comerciales de los clientes.',
+          'Elaboré diagramas de arquitectura, flujos de comunicación y definiciones de integración entre canales, aplicaciones y sistemas empresariales.',
+          'Alineé las necesidades de negocio con las capacidades tecnológicas disponibles para diseñar soluciones escalables, seguras y de alto impacto.',
+          'Participé en demostraciones, pruebas de concepto y acompañamiento técnico durante procesos de evaluación e implementación.',
+          'Elaboré documentación técnica, fichas de producto y contenido de apoyo para propuestas técnico-comerciales.',
+        ],
+      },
+    },
+    education: { eyebrow: '05 · Educación', title: 'Educación', period: 'ago. 2019 — dic. 2023', degree: 'Ingeniería, Ingeniería en Telecomunicaciones' },
+    contact: { eyebrow: '06 · Contacto', title: '¿Hablamos?', desc: 'Si estás explorando cómo modernizar tus integraciones, automatizar procesos o incorporar agentes de IA en tu organización, estaré encantado de conversar.' },
+  },
+  en: {
+    nav: { sobreMi: 'about', proyectos: 'projects', habilidades: 'skills', experiencia: 'experience', educacion: 'education', contacto: 'contact' },
+    hero: {
+      role: 'Solutions Engineer | Integration & Automation',
+      tags: 'APIs • Enterprise Messaging • iPaaS • AI Agents • Cloud',
+      desc: 'I design and implement integrations, automations, and AI agents on Workato — including MCP integration — for enterprise clients. I lead technical demos, implementations, and end-to-end support.',
+      ctaProjects: 'view projects →',
+      ctaContact: 'get in touch',
+    },
+    about: {
+      eyebrow: '01 · About me', title: 'About me',
+      p1: 'I\u2019m a Telecommunications Engineer with more than three years of experience in technology, telecom, and solution integration. I\u2019m passionate about turning complex technical challenges into simpler, more efficient, scalable processes through automation, APIs, and artificial intelligence.',
+      p2: 'I currently help organizations design and implement integration architectures that connect applications, data, and business processes. I\u2019m involved across the full solution lifecycle: from requirements gathering and technical design to building proofs of concept, implementation, training, and client onboarding.',
+      p3: 'I work with the leading Workato partner in LATAM, building solutions based on iPaaS, API management, enterprise automation, and Agentic AI. My focus is creating more intelligent, dynamic, and autonomous technology ecosystems that respond to real business needs.',
+      p4: 'My previous experience in CPaaS and omnichannel solutions —Contact Center, WhatsApp Business API, SMS, and RCS— gives me a full picture of how corporate communications connect with applications, platforms, and enterprise systems.',
+      p5: 'I specialize in bridging business vision and technical execution, designing clear, scalable, high-impact solutions that generate operational efficiency and tangible value for organizations.',
+    },
+    archLabel: '◆ ARCHITECTURE',
+    blogBanner: { label: 'NEW ARTICLE', title: 'Cloud Governance Genie: an AI agent that audits, remediates, and manages EC2 instances in AWS' },
+    projects: { eyebrow: '02 · Projects', title: 'Projects' },
+    p1: {
+      title: 'SDR Agent: Prospecting & Enrichment with Workato + Apollo MCP',
+      subtitle: 'From a natural-language request to an enriched, organized prospect list in Google Sheets.',
+      excerpt: 'AI agent that finds companies, identifies decision-makers, and enriches contacts automatically to speed up B2B prospecting.',
+      desc1: 'AI agent that finds companies, identifies decision-makers, enriches contacts, and organizes results automatically to speed up B2B prospecting. The user describes criteria like industry, country, company size, and target titles in natural language; the agent queries Apollo via MCP, presents companies and profiles found, prioritizes contacts such as CIO, CTO, VPs, and directors, enriches the selected contact\u2019s professional data, and loads the structured results into Google Sheets.',
+      desc2: 'Solves the manual work of searching for companies, identifying decision-makers, reviewing and enriching profiles, and copying data between platforms — work that delays the start of sales campaigns. The agent condenses the whole process into a single conversation: it interprets the request, uses external tools, processes results, and takes action, giving the sales team a centralized, structured list of companies and contacts ready for review, segmentation, or outbound campaigns.',
+      arch: {
+        a: { title: 'User', sub: 'natural-language request' },
+        b: { title: 'Workato Agent' },
+        c: { title: 'Apollo (MCP)', sub: 'search + enrichment' },
+        d: { title: 'Prioritization', sub: 'CIO · CTO · VP · Dir.' },
+        e: { title: 'Google Sheets' },
+      },
+    },
+    p2: {
+      title: 'AI Agent for EC2 Security Auditing & Management',
+      excerpt: 'Workato agent that audits, remediates, and provisions AWS EC2 instances according to defined security policies.',
+      desc1: 'Agent built in Workato that audits security configurations of AWS EC2 instances, automatically remediates findings, and provisions new instances per defined policies — cutting manual work on recurring security and provisioning tasks.',
+      arch: {
+        a: { title: 'Workato Agent', sub: 'scheduled / on demand' },
+        b: { title: 'AWS EC2', sub: 'configuration audit' },
+        c: { title: 'Findings detected' },
+        d: { title: 'Automatic remediation', sub: 'fix + provisioning' },
+      },
+      tagAgents: 'AI Agents', tagSecurity: 'Security',
+    },
+    p3: {
+      title: 'Automatic Remediation Agent for Exposed S3 Buckets',
+      excerpt: 'Agent that detects and automatically fixes publicly exposed S3 buckets, running both inside and outside Workato via MCP.',
+      desc1: 'Agent that connects to AWS S3, detects publicly exposed buckets, and fixes them automatically. The video shows two ways to run it: first as a native Workato flow, then the same agent wired via MCP (Model Context Protocol) into Claude, running outside Workato with the same result.',
+      arch: {
+        a: { sub: 'or native Workato trigger' },
+        b: { title: 'Workato Agent (MCP)' },
+        c: { sub: 'public bucket detection' },
+        d: { title: 'Automatic remediation' },
+      },
+    },
+    p4: {
+      title: 'Conversational Power BI Queries with Workato Agents',
+      excerpt: 'Query Power BI data in natural language from Microsoft Teams, using Workato Genie as the integration layer.',
+      desc1: 'Solution that lets users query Power BI data from a custom Microsoft Teams app using natural language. Teams is the conversation interface; Workato Genie interprets intent and picks a skill, which runs a Workato recipe with the integration logic and validations. Workato connects to the semantic model via the Power BI REST API and runs DAX queries for metrics, comparisons, or breakdowns, and Genie returns the answer in natural language inside Teams.',
+      desc2: 'Power BI remains the data and visualization source; Workato is the integration and execution layer. The goal is to cut manual dashboard navigation for recurring queries, within the capabilities defined by the skills configured in Workato.',
+      arch: {
+        a: { sub: 'natural-language query' },
+        b: { sub: 'intent → skill' },
+        c: { title: 'Workato Recipe' },
+        d: { title: 'Answer in Teams' },
+      },
+    },
+    skills: {
+      eyebrow: '03 · Skills', title: 'Technical skills',
+      techLabel: 'Technologies & platforms',
+      c1: { name: 'Integration & Automation', desc: 'Workato · n8n · Make · Power Automate · iPaaS · Process automation' },
+      c2: { name: 'AI & Agents', desc: 'AI agents · MCP · Model integration' },
+      c3: { name: 'Cloud', desc: 'AWS · EC2 · Cloud security' },
+      c4: { name: 'Technical leadership', desc: 'Solution architecture · Mentoring' },
+      c5: { name: 'APIs', desc: 'REST · SOAP · Webhooks · OAuth authentication' },
+      c6: { name: 'Messaging & Voice', desc: 'WhatsApp · Intelligent chatbots · IVR · SIP' },
+      c7: { name: 'Contact Center as a Service', desc: 'BrightPattern · Genesys · Contact center setup · Workspace provisioning · Conversational flow configuration' },
+    },
+    experience: {
+      eyebrow: '04 · Experience', title: 'Work experience',
+      job1: {
+        period: 'Nov 2025 — present', title: 'Presales & Solutions Engineer – Workato',
+        company: 'Chakray Consulting · Full-time', location: 'Mexico City Metropolitan Area · Hybrid',
+        bullets: [
+          'Design integration and enterprise automation architectures using Workato, APIs, iPaaS, and Agentic AI solutions.',
+          'Lead discovery sessions and requirements analysis to turn business needs into viable, scalable technical solutions aligned with client goals.',
+          'Build demos, proofs of concept, and use cases to validate the feasibility, scope, and impact of proposed solutions.',
+          'Provide technical support through presales processes, RFPs, estimates, sizing, and technical-commercial proposals.',
+          'Take part in implementation, onboarding, and client training, driving adoption and long-term sustainability of solutions.',
+          'Integrate applications, data, and processes via APIs, connectors, automations, and AI agents.',
+        ],
+      },
+      job2: {
+        period: 'Jan 2024 — Nov 2025', title: 'Solutions Engineer – Omnichannel & Contact Center Solutions',
+        company: 'C3NTRO Telecom · Full-time', location: 'Mexico City, Mexico',
+        bullets: [
+          'Designed solution architectures based on CPaaS, enterprise messaging —SMS, RCS, WhatsApp Business API—, telephony, and Contact Center platforms.',
+          'Analyzed technical and functional requirements to build proposals aligned with clients\u2019 operational and commercial needs.',
+          'Produced architecture diagrams, communication flows, and integration definitions across channels, applications, and enterprise systems.',
+          'Aligned business needs with available technology capabilities to design scalable, secure, high-impact solutions.',
+          'Took part in demos, proofs of concept, and technical support during evaluation and implementation.',
+          'Produced technical documentation, product sheets, and supporting content for technical-commercial proposals.',
+        ],
+      },
+    },
+    education: { eyebrow: '05 · Education', title: 'Education', period: 'Aug 2019 — Dec 2023', degree: 'Engineering, Telecommunications Engineering' },
+    contact: { eyebrow: '06 · Contact', title: 'Let\u2019s talk?', desc: 'If you\u2019re exploring how to modernize your integrations, automate processes, or bring AI agents into your organization, I\u2019d be glad to talk.' },
+  },
+};
+
+const THEMES = {
+  dark: { bg: 'oklch(0.16 0.02 250)', navBg: 'oklch(0.16 0.02 250 / 0.85)', surface: 'oklch(0.19 0.02 250)', surface2: 'oklch(0.14 0.02 250)', surface3: 'oklch(0.12 0.02 250)', border: 'oklch(0.30 0.02 250)', text: 'oklch(0.92 0.01 250)', textSecondary: 'oklch(0.75 0.015 250)', textMuted: 'oklch(0.65 0.02 250)', textNav: 'oklch(0.85 0.01 250)', accent: 'oklch(0.85 0.17 195)', accent2: 'oklch(0.85 0.19 145)', orb1: 'oklch(0.85 0.17 195 / 0.22)', orb2: 'oklch(0.85 0.19 145 / 0.2)' },
+  light: { bg: 'oklch(0.97 0.005 250)', navBg: 'oklch(0.97 0.005 250 / 0.85)', surface: 'oklch(0.93 0.008 250)', surface2: 'oklch(0.89 0.01 250)', surface3: 'oklch(0.85 0.012 250)', border: 'oklch(0.78 0.015 250)', text: 'oklch(0.18 0.02 250)', textSecondary: 'oklch(0.32 0.015 250)', textMuted: 'oklch(0.45 0.02 250)', textNav: 'oklch(0.30 0.01 250)', accent: 'oklch(0.52 0.16 220)', accent2: 'oklch(0.48 0.15 145)', orb1: 'oklch(0.6 0.19 220 / 0.55)', orb2: 'oklch(0.55 0.17 145 / 0.5)' },
+};
+
+class Component extends DCLogic {
+  state = { lang: 'es', showTop: false, theme: 'dark', activeSection: '', progress: 0, p1Open: false, p2Open: false, p3Open: false, p4Open: false };
+  _revealEls = [];
+  _sectionMap = new Map();
+
+  setCanvasRef(el) {
+    if (!el || this._canvas) return;
+    this._canvas = el;
+    const ctx = el.getContext('2d');
+    const particles = [];
+    const COUNT = 70;
+    const LINK_DIST = 130;
+    let w, h;
+    const resize = () => { w = el.width = window.innerWidth; h = el.height = window.innerHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+    this._resizeHandler = resize;
+    for (let i = 0; i < COUNT; i++) {
+      particles.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35 });
+    }
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of particles) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        const isLight = this.state.theme === 'light';
+        ctx.fillStyle = isLight ? 'oklch(0.4 0.19 220 / 0.85)' : 'oklch(0.85 0.17 195 / 0.55)'; ctx.fill();
+      }
+      const isLightLines = this.state.theme === 'light';
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const a = particles[i], b = particles[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < LINK_DIST) {
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+            const alpha = (isLightLines ? 0.45 : 0.18) * (1 - dist / LINK_DIST);
+            ctx.strokeStyle = isLightLines ? `oklch(0.4 0.19 220 / ${alpha})` : `oklch(0.85 0.17 195 / ${alpha})`;
+            ctx.lineWidth = 1; ctx.stroke();
+          }
+        }
+      }
+      this._raf = requestAnimationFrame(draw);
+    };
+    draw();
+  }
+
+  registerSection(el, id) {
+    if (!el || this._revealEls.includes(el)) return;
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+    this._revealEls.push(el);
+    this._sectionMap.set(el, id);
+    if (this._observer) this._observer.observe(el);
+    if (this._navObserver) this._navObserver.observe(el);
+    const hash = window.location.hash.replace('#', '');
+    if (hash === id && !this._scrolledToHash) {
+      this._scrolledToHash = true;
+      requestAnimationFrame(() => {
+        const nav = document.querySelector('nav');
+        const navH = nav ? nav.offsetHeight : 0;
+        window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - navH - 12, behavior: 'auto' });
+      });
+    }
+  }
+
+  onScroll() {
+    const shouldShow = window.scrollY > 500;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 0;
+    if (shouldShow !== this.state.showTop || Math.abs(pct - this.state.progress) > 0.4) {
+      this.setState({ showTop: shouldShow, progress: pct });
+    }
+  }
+
+  componentDidMount() {
+    this._observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+          this._observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    this._navObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const id = this._sectionMap.get(entry.target);
+          if (id && id !== this.state.activeSection) this.setState({ activeSection: id });
+        }
+      });
+    }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+    this._revealEls.forEach((el) => { this._observer.observe(el); this._navObserver.observe(el); });
+    this._scrollHandler = () => this.onScroll();
+    window.addEventListener('scroll', this._scrollHandler, { passive: true });
+  }
+
+  componentWillUnmount() {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._resizeHandler) window.removeEventListener('resize', this._resizeHandler);
+    if (this._scrollHandler) window.removeEventListener('scroll', this._scrollHandler);
+    if (this._observer) this._observer.disconnect();
+    if (this._navObserver) this._navObserver.disconnect();
+  }
+
+  renderVals() {
+    const lang = this.state.lang;
+    const theme = this.state.theme;
+    const c = THEMES[theme];
+    const activeStyle = `font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 4px; border: 1px solid ${c.accent}; background: ${c.accent}; color: ${c.bg}; cursor: pointer; white-space: nowrap;`;
+    const inactiveStyle = `font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 4px; border: 1px solid ${c.border}; background: transparent; color: ${c.textMuted}; cursor: pointer; white-space: nowrap;`;
+    const navActive = `color: ${c.accent}; transition: color 0.2s ease; font-weight: 700;`;
+    const navInactive = `color: ${c.textNav}; transition: color 0.2s ease; font-weight: 400;`;
+    const navStyleFor = (id) => (this.state.activeSection === id ? navActive : navInactive);
+    return {
+      setCanvasRef: (el) => this.setCanvasRef(el),
+      registerSobreMi: (el) => this.registerSection(el, 'sobre-mi'),
+      registerProyectos: (el) => this.registerSection(el, 'proyectos'),
+      registerHabilidades: (el) => this.registerSection(el, 'habilidades'),
+      registerExperiencia: (el) => this.registerSection(el, 'experiencia'),
+      registerEducacion: (el) => this.registerSection(el, 'educacion'),
+      registerContacto: (el) => this.registerSection(el, 'contacto'),
+      p1Open: this.state.p1Open, p2Open: this.state.p2Open, p3Open: this.state.p3Open, p4Open: this.state.p4Open,
+      toggleP1: () => this.setState(s => ({ p1Open: !s.p1Open })),
+      toggleP2: () => this.setState(s => ({ p2Open: !s.p2Open })),
+      toggleP3: () => this.setState(s => ({ p3Open: !s.p3Open })),
+      toggleP4: () => this.setState(s => ({ p4Open: !s.p4Open })),
+      p1ToggleLabel: this.state.p1Open ? (lang === 'es' ? '− Ocultar detalles' : '− Hide details') : (lang === 'es' ? '+ Ver detalles y arquitectura' : '+ View details & architecture'),
+      p2ToggleLabel: this.state.p2Open ? (lang === 'es' ? '− Ocultar detalles' : '− Hide details') : (lang === 'es' ? '+ Ver detalles y arquitectura' : '+ View details & architecture'),
+      p3ToggleLabel: this.state.p3Open ? (lang === 'es' ? '− Ocultar detalles' : '− Hide details') : (lang === 'es' ? '+ Ver detalles y arquitectura' : '+ View details & architecture'),
+      p4ToggleLabel: this.state.p4Open ? (lang === 'es' ? '− Ocultar detalles' : '− Hide details') : (lang === 'es' ? '+ Ver detalles y arquitectura' : '+ View details & architecture'),
+      showTop: this.state.showTop,
+      progressPct: Math.round(this.state.progress * 10) / 10,
+      scrollToTop: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+      setLangEs: () => this.setState({ lang: 'es' }),
+      setLangEn: () => this.setState({ lang: 'en' }),
+      esBtnStyle: lang === 'es' ? activeStyle : inactiveStyle,
+      enBtnStyle: lang === 'en' ? activeStyle : inactiveStyle,
+      setThemeDark: () => this.setState({ theme: 'dark' }),
+      setThemeLight: () => this.setState({ theme: 'light' }),
+      darkBtnStyle: theme === 'dark' ? activeStyle : inactiveStyle,
+      lightBtnStyle: theme === 'light' ? activeStyle : inactiveStyle,
+      navStyleSobreMi: navStyleFor('sobre-mi'),
+      navStyleProyectos: navStyleFor('proyectos'),
+      navStyleHabilidades: navStyleFor('habilidades'),
+      navStyleExperiencia: navStyleFor('experiencia'),
+      navStyleEducacion: navStyleFor('educacion'),
+      navStyleContacto: navStyleFor('contacto'),
+      rootStyle: `--bg:${c.bg}; --nav-bg:${c.navBg}; --surface:${c.surface}; --surface-2:${c.surface2}; --surface-3:${c.surface3}; --border:${c.border}; --text:${c.text}; --text-secondary:${c.textSecondary}; --text-muted:${c.textMuted}; --text-nav:${c.textNav}; --accent:${c.accent}; --accent-2:${c.accent2}; --orb-1:${c.orb1}; --orb-2:${c.orb2}; background: var(--bg); color: var(--text); min-height: 100vh; position: relative; transition: background 0.3s ease, color 0.3s ease;`,
+      t: T[lang],
+    };
+  }
+}
+</script>
+</body>
+</html>
